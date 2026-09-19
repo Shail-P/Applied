@@ -1,4 +1,4 @@
-import { SignIn } from "@clerk/nextjs";
+import { ClerkLoaded, ClerkLoading, SignIn } from "@clerk/nextjs";
 
 export default function LoginPage() {
   return (
@@ -6,19 +6,28 @@ export default function LoginPage() {
       <div className="ambient-light ambient-light-left" aria-hidden="true" />
       <div className="ambient-light ambient-light-right" aria-hidden="true" />
 
-      <section className="relative z-10 flex w-full max-w-md flex-col items-center text-center">
-        <p className="auth-product-line intro-item [animation-delay:80ms]">
-          Paste a job. Track every opportunity.
-        </p>
-
-        <div className="auth-card-stage intro-item mt-7 [animation-delay:180ms]">
-          <SignIn
-            path="/login"
-            signUpUrl="/sign-up"
-            fallbackRedirectUrl="/"
-          />
+      <ClerkLoading>
+        <div className="auth-loading-indicator" role="status">
+          <span className="sr-only">Loading Applied</span>
+          <span className="auth-loading-dot" aria-hidden="true" />
         </div>
-      </section>
+      </ClerkLoading>
+
+      <ClerkLoaded>
+        <section className="auth-content-enter relative z-10 flex w-full max-w-md flex-col items-center text-center">
+          <p className="auth-product-line">
+            Paste a job. Track every opportunity.
+          </p>
+
+          <div className="auth-card-stage mt-7">
+            <SignIn
+              path="/login"
+              signUpUrl="/sign-up"
+              forceRedirectUrl="/"
+            />
+          </div>
+        </section>
+      </ClerkLoaded>
     </main>
   );
 }

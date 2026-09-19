@@ -100,6 +100,34 @@ textarea {
   backdrop-filter: blur(22px) saturate(170%);
 }
 
+.auth-content-enter {
+  animation: reveal-up 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auth-loading-indicator {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    0 14px 36px rgba(35, 42, 58, 0.1);
+  backdrop-filter: blur(20px) saturate(160%);
+  animation: loading-breathe 1.4s ease-in-out infinite;
+}
+
+.auth-loading-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #18181b;
+}
+
 .auth-card-stage {
   position: relative;
   display: grid;
@@ -276,8 +304,22 @@ textarea {
   }
 }
 
+@keyframes loading-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ambient-light,
+  .auth-content-enter,
+  .auth-loading-indicator,
   .intro-item {
     animation: none;
   }
