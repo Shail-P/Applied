@@ -1,49 +1,52 @@
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
-import { JobDescriptionForm } from "@/features/applications/components/job-description-form";
+import { Brand } from "@/components/Brand";
+import { ApplicationTracker } from "@/features/applications/components/ApplicationTracker";
 
 export default async function Home() {
-  const { isAuthenticated, redirectToSignIn } = await auth();
-
-  if (!isAuthenticated) {
-    return redirectToSignIn();
-  }
+  const { userId, redirectToSignIn } = await auth();
+  if (!userId) return redirectToSignIn();
 
   return (
-    <main className="applied-shell relative isolate min-h-screen overflow-hidden px-5 pb-16 pt-8 sm:px-8 sm:pt-10">
-      <div className="ambient-light ambient-light-left" aria-hidden="true" />
-      <div className="ambient-light ambient-light-right" aria-hidden="true" />
-
-      <div className="relative z-10 mx-auto w-full max-w-3xl">
-        <div className="intro-item flex justify-end [animation-delay:80ms]">
-          <div className="glass-user-control">
+    <>
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <header className="page-container page-enter page-enter-header flex items-center justify-between gap-5 py-7">
+        <Brand />
+        <nav
+          aria-label="Main navigation"
+          className="flex items-center gap-5 text-sm font-medium"
+        >
+          <a href="#applications" className="nav-link">
+            Applications
+          </a>
+          <div className="surface flex size-10 items-center justify-center rounded-full">
             <UserButton />
           </div>
+        </nav>
+      </header>
+
+      <main id="main-content" className="page-container page-enter page-enter-main pb-10">
+        <div className="hero-enter mx-auto max-w-2xl pt-9 pb-10 text-center sm:pt-14 sm:pb-12">
+          <h1 className="text-4xl font-semibold leading-[1.08] tracking-[-0.05em] sm:text-5xl">
+            Paste the job.
+            <br />
+            We&apos;ll track the rest.
+          </h1>
+          <p className="mx-auto mt-5 max-w-md text-base leading-7 text-zinc-500">
+            Paste a posting, review the details, and keep your applications in
+            one place.
+          </p>
         </div>
 
-        <section
-          aria-labelledby="page-title"
-          className="pb-8 pt-12 text-center sm:pt-14"
-        >
-          <p className="intro-item text-sm font-semibold tracking-[-0.01em] text-zinc-500 [animation-delay:140ms]">
-            Applied
-          </p>
+        <ApplicationTracker key={userId} />
 
-          <h1
-            id="page-title"
-            className="intro-item mx-auto mt-7 max-w-2xl text-4xl font-semibold leading-[1.04] tracking-[-0.05em] text-zinc-950 [animation-delay:210ms] sm:text-6xl"
-          >
-            Paste the job. We&apos;ll track the rest.
-          </h1>
-
-          <p className="intro-item mx-auto mt-5 max-w-lg text-base leading-7 text-zinc-500 [animation-delay:280ms] sm:text-lg">
-            Copy and paste a job posting below, and we&apos;ll organize it for
-            you.
-          </p>
-
-          <JobDescriptionForm />
-        </section>
-      </div>
-    </main>
+        <footer className="mt-12 border-t border-white/70 pt-5 text-center text-xs leading-5 text-zinc-500">
+          Applications are saved for this session only. Refreshing clears your
+          tracker.
+        </footer>
+      </main>
+    </>
   );
 }

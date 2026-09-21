@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Applied
 
-## Getting Started
+A job application tracker built with Next.js, React, TypeScript, Clerk, and Gemini.
+Paste a posting, review the extracted details, and add it to your tracker.
 
-First, run the development server:
+The interface keeps the original Liquid Glass style: translucent surfaces, subtle shadows, rounded controls, and system typography.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Current version
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Clerk sign-in and sign-up.
+- AI extraction of company, title, location, workplace, skills, and summary.
+- Editable review before submitting to the tracker, with manual entry available.
+- Edit and delete saved applications.
+- Search by company, role, location, skills, or summary; filter by status.
+- Original posting and added date preserved during edits.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Storage is temporary React state. Refreshing or leaving the page clears applications.**
+Submitting adds a record to this tracker; it does not apply to an employer.
+MongoDB is the next milestone.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Run locally
 
-## Learn More
+Use Node.js 24 or newer and npm.
 
-To learn more about Next.js, take a look at the following resources:
+1. Run `npm ci`.
+2. Copy `.env.example` to `.env.local`.
+3. Set your Clerk publishable/secret keys and `GEMINI_API_KEY`.
+4. Run `npm run dev` and open [localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The Clerk routes are `/login` and `/sign-up`. The checked-in environment example contains names and empty placeholders only. Existing `.env` files are also supported; avoid defining conflicting keys in multiple files.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Never commit a populated environment file. Only the Clerk publishable key uses the `NEXT_PUBLIC_` prefix. The Gemini and Clerk secret keys stay on the server.
 
-## Deploy on Vercel
+## Commands
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command                | Purpose                                        |
+| ---------------------- | ---------------------------------------------- |
+| `npm run dev`          | Start the development server                   |
+| `npm run build`        | Build for production                           |
+| `npm start`            | Serve the production build                     |
+| `npm run lint`         | Check code quality                             |
+| `npm run typecheck`    | Generate Next route types and check TypeScript |
+| `npm test`             | Run automated regression tests                 |
+| `npm run format`       | Format the project                             |
+| `npm run format:check` | Check formatting without changing files        |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The production build explicitly uses Webpack. It avoids a Turbopack CSS-worker port restriction in the development environment and is supported by this installed Next.js version.
+
+Tests use simulated browser interactions and mocked Gemini responses. They do not send postings to Google or consume API quota.
+
+## Where to start reading
+
+| File                                                          | Responsibility                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `src/app/page.tsx`                                            | Checks Clerk authentication and renders the page                    |
+| `src/features/applications/components/ApplicationTracker.tsx` | Coordinates the paste, review, and edit screens                     |
+| `src/features/applications/hooks/useApplications.ts`          | Owns local application state and create/update/delete operations    |
+| `src/features/applications/components/JobDescriptionForm.tsx` | Handles pasted text, extraction requests, loading, and manual entry |
+| `src/features/applications/components/ApplicationForm.tsx`    | Shared review/edit form                                             |
+| `src/features/applications/components/ApplicationList.tsx`    | Searches, filters, and displays the list                            |
+| `src/features/applications/components/ApplicationCard.tsx`    | Displays one application                                            |
+| `src/features/applications/api.ts`                            | Browser request to the authenticated extraction route               |
+| `src/app/api/applications/extract/route.ts`                   | Authenticates and validates the request                             |
+| `src/features/applications/server/extract-application.ts`     | Calls Gemini and validates the response                             |
+| `src/features/applications/types.ts`                          | Application model and display labels                                |
+| `src/features/applications/schemas.ts`                        | Runtime validation shared by browser and server                     |
+| `src/components/AuthShell.tsx`                                | Shared sign-in/sign-up layout                                       |
+| `src/app/globals.css`                                         | Shared glass surfaces, fields, and buttons                          |
+
+Components use PascalCase filenames; hooks start with `use`. Imports within the application feature are relative; cross-feature imports use `@/`.
+
+For a walkthrough and interview preparation, read [the project guide](docs/PROJECT_GUIDE.md).
+
+## Next: MongoDB
+
+Start at `useApplications`. Replace its local operations with calls to authenticated application API routes, then add loading and error states around those calls. The MongoDB connection and queries belong on the server; every query must be scoped to the signed-in Clerk user.
+
+No database SDK, database connection, browser storage, or placeholder persistence layer is included yet.

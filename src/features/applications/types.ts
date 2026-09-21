@@ -10,3 +10,20 @@ export type Application = {
   jobDescription: string;
   appliedAt: string;
 };
+
+// A draft has all editable fields, but no saved identity or timestamp yet.
+export type ApplicationDraft = Omit<Application, "id" | "appliedAt">;
+
+export const statusLabels: Record<Application["status"], string> = {
+  applied: "Applied",
+  interview: "Interview",
+  offer: "Offer",
+  rejected: "Rejected",
+};
+
+export const workplaceLabels: Record<Application["workplaceType"], string> = {
+  remote: "Remote",
+  hybrid: "Hybrid",
+  onsite: "On-site",
+  unknown: "Not specified",
+};

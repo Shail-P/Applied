@@ -1,290 +1,267 @@
 @import "tailwindcss";
 
+/* Shared Liquid Glass surfaces; layout lives with each component. */
 :root {
-  --background: #f4f5f7;
-  --foreground: #09090b;
+  --background: #f1f3f7;
+  --foreground: #1d1d1f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
 }
 
 body {
   background:
-    radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.95), transparent 42%),
-    linear-gradient(145deg, #f7f7f9 0%, #eef1f6 48%, #f7f7f8 100%);
+    radial-gradient(
+      ellipse at 12% 15%,
+      rgb(185 208 244 / 35%),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 95% 65%,
+      rgb(212 203 235 / 28%),
+      transparent 50%
+    ),
+    linear-gradient(140deg, #f7f8fa, #edf0f5 55%, #f5f5f7);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
-
-.applied-shell {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
-  background-size: 72px 72px;
+button,
+summary {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+textarea {
+  resize: vertical;
+}
+::selection {
+  background: #dbeafe;
+}
+:focus-visible {
+  outline: 2px solid #436ba8;
+  outline-offset: 4px;
+}
+[id] {
+  scroll-margin-top: 1.5rem;
 }
 
-.ambient-light {
-  position: absolute;
-  width: 30rem;
-  height: 30rem;
-  border-radius: 999px;
-  filter: blur(18px);
-  opacity: 0.48;
-  pointer-events: none;
-  will-change: transform;
+/* A small set of shared patterns keeps forms, cards, and auth consistent. */
+@layer components {
+  .page-container {
+    width: min(100% - 2.5rem, 54rem);
+    margin-inline: auto;
+  }
+
+  .surface {
+    position: relative;
+    border: 1px solid rgb(255 255 255 / 85%);
+    border-radius: 1.75rem;
+    background: linear-gradient(
+      145deg,
+      rgb(255 255 255 / 72%),
+      rgb(255 255 255 / 38%)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 95%),
+      inset 0 -1px 0 rgb(255 255 255 / 35%),
+      0 12px 40px rgb(44 54 78 / 7%);
+    -webkit-backdrop-filter: blur(28px) saturate(155%);
+    backdrop-filter: blur(28px) saturate(155%);
+    transition:
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 220ms ease;
+  }
+
+  .surface:hover {
+    border-color: rgb(255 255 255 / 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 100%),
+      inset 0 -1px 0 rgb(255 255 255 / 42%),
+      0 20px 56px rgb(44 54 78 / 11%);
+  }
+
+  .button {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 180ms ease,
+      box-shadow 220ms ease,
+      color 180ms ease;
+  }
+
+  .button:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .button:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+  }
+
+  .button-primary {
+    background: linear-gradient(#35363b, #151518);
+    color: white;
+    border-color: rgb(255 255 255 / 22%);
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / 24%),
+      0 5px 14px rgb(20 20 28 / 12%);
+  }
+  .button-primary:hover:not(:disabled) {
+    background: linear-gradient(#45464b, #202024);
+  }
+  .button-secondary {
+    background: rgb(255 255 255 / 50%);
+    border-color: rgb(255 255 255 / 90%);
+    color: #3a3a3c;
+    box-shadow:
+      inset 0 1px 0 white,
+      0 2px 8px rgb(35 42 58 / 4%);
+  }
+  .button-secondary:hover:not(:disabled),
+  .button-quiet:hover:not(:disabled) {
+    background: rgb(255 255 255 / 75%);
+  }
+  .button-quiet {
+    color: #626269;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #48484a;
+  }
+
+  .field {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid rgb(30 36 50 / 8%);
+    border-radius: 0.875rem;
+    background: rgb(250 251 255 / 48%);
+    box-shadow:
+      inset 0 1px 2px rgb(20 24 34 / 2%),
+      0 1px 0 rgb(255 255 255 / 70%);
+    padding: 0.75rem;
+    color: #1d1d1f;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .field::placeholder {
+    color: #777981;
+  }
+  .field:focus {
+    border-color: rgb(60 105 176 / 40%);
+    outline: 3px solid rgb(92 132 215 / 12%);
+    outline-offset: 1px;
+    background: rgb(255 255 255 / 68%);
+    transform: translateY(-1px);
+  }
+  .field:disabled {
+    color: #777981;
+  }
+  .nav-link {
+    color: #626269;
+  }
+  .nav-link:hover {
+    color: #1d1d1f;
+  }
 }
 
-.ambient-light-left {
-  top: -12rem;
-  left: -11rem;
-  background: radial-gradient(circle, rgba(170, 194, 255, 0.72), transparent 68%);
-  animation: float-left 14s ease-in-out infinite alternate;
+.page-enter {
+  animation: page-enter 780ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.ambient-light-right {
-  right: -13rem;
-  bottom: -12rem;
-  background: radial-gradient(circle, rgba(207, 181, 255, 0.62), transparent 68%);
-  animation: float-right 16s ease-in-out infinite alternate;
+.page-enter-header {
+  animation-delay: 40ms;
 }
 
-.glass-user-control {
-  display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.46);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 8px 24px rgba(30, 38, 55, 0.09);
-  backdrop-filter: blur(20px) saturate(160%);
-  transition: transform 240ms ease, box-shadow 240ms ease;
+.page-enter-main {
+  animation-delay: 110ms;
 }
 
-.glass-user-control:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 12px 30px rgba(30, 38, 55, 0.13);
+.hero-enter {
+  animation: hero-enter 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.auth-product-line {
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: 999px;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.4)
-  );
-  padding: 0.65rem 1rem;
-  color: #52525b;
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 10px 30px rgba(35, 42, 58, 0.09);
-  backdrop-filter: blur(22px) saturate(170%);
+.editor-panel {
+  animation: editor-panel-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
 }
 
-.auth-content-enter {
-  animation: reveal-up 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+.editor-content {
+  animation: editor-content-enter 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.auth-loading-indicator {
-  position: relative;
-  z-index: 10;
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.94),
-    0 14px 36px rgba(35, 42, 58, 0.1);
-  backdrop-filter: blur(20px) saturate(160%);
-  animation: loading-breathe 1.4s ease-in-out infinite;
+.notice-line {
+  animation: notice-enter 320ms ease-out both;
 }
 
-.auth-loading-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 999px;
-  background: #18181b;
+.list-enter {
+  animation: list-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 320ms both;
 }
 
-.auth-card-stage {
-  position: relative;
-  display: grid;
-  width: 100%;
-  place-items: center;
-  transition: transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+.motion-card {
+  animation: card-enter 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
 }
 
-.auth-card-stage::before {
-  position: absolute;
-  z-index: -1;
-  inset: 8% -8% -10%;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 2.25rem;
-  background: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 30px 90px rgba(54, 64, 88, 0.14);
-  backdrop-filter: blur(24px) saturate(150%);
-  content: "";
-  opacity: 0.72;
-  transform: scale(0.94);
+.motion-card:hover {
+  transform: translateY(-5px) scale(1.005);
 }
 
-.auth-card-stage:hover {
-  transform: translateY(-2px);
+.state-enter {
+  animation: state-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.liquid-glass {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  border-radius: 2rem;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.42)
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.96),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.4),
-    0 28px 80px rgba(35, 42, 58, 0.14);
-  backdrop-filter: blur(28px) saturate(170%);
-  transition: transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 350ms ease;
-}
-
-.liquid-glass::before {
-  position: absolute;
-  inset: -45% 20% auto -20%;
-  height: 12rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.92), transparent 66%);
-  content: "";
-  opacity: 0.72;
-  pointer-events: none;
-  transform: rotate(-8deg);
-}
-
-.liquid-glass:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.48),
-    0 34px 90px rgba(35, 42, 58, 0.17);
-}
-
-.glass-input {
-  position: relative;
-  z-index: 1;
-  border: 1px solid rgba(20, 24, 34, 0.07);
-  border-radius: 1.4rem;
-  background: rgba(248, 249, 252, 0.58);
-  box-shadow:
-    inset 0 1px 2px rgba(20, 24, 34, 0.025),
-    0 1px 0 rgba(255, 255, 255, 0.76);
-  backdrop-filter: blur(18px);
-  transition: background 240ms ease, border-color 240ms ease,
-    box-shadow 240ms ease;
-}
-
-.glass-input:focus {
-  border-color: rgba(64, 93, 180, 0.26);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow:
-    0 0 0 4px rgba(92, 122, 215, 0.09),
-    inset 0 1px 2px rgba(20, 24, 34, 0.025);
-}
-
-.liquid-button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #27282d 0%, #09090b 100%);
-  padding: 0.75rem 1.15rem;
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 600;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 8px 22px rgba(10, 10, 12, 0.2);
-  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 220ms ease;
-}
-
-.liquid-button::before {
-  position: absolute;
-  top: -40%;
-  left: -55%;
-  width: 40%;
-  height: 180%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
-  content: "";
-  transform: rotate(18deg);
-  transition: left 500ms ease;
-}
-
-.liquid-button:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 12px 28px rgba(10, 10, 12, 0.26);
-}
-
-.liquid-button:hover::before {
-  left: 120%;
-}
-
-.liquid-button:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.liquid-button:focus-visible {
-  outline: 2px solid #18181b;
-  outline-offset: 3px;
-}
-
-.button-arrow {
-  display: inline-block;
-  transition: transform 220ms ease;
-}
-
-.liquid-button:hover .button-arrow {
-  transform: translateX(3px);
-}
-
-.intro-item {
-  opacity: 0;
-  animation: reveal-up 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes reveal-up {
+@keyframes page-enter {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -292,46 +269,90 @@ textarea {
   }
 }
 
-@keyframes float-left {
+@keyframes editor-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
   to {
-    transform: translate3d(4rem, 3rem, 0) scale(1.08);
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes float-right {
+@keyframes editor-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
   to {
-    transform: translate3d(-4rem, -2rem, 0) scale(1.12);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes loading-breathe {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.94);
+@keyframes notice-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
   }
-  50% {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes list-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes state-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
     opacity: 1;
     transform: scale(1);
   }
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -5rem;
+  z-index: 50;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 0.5rem;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ambient-light,
-  .auth-content-enter,
-  .auth-loading-indicator,
-  .intro-item {
-    animation: none;
-  }
-
-  .intro-item {
-    opacity: 1;
-  }
-
-  .glass-user-control,
-  .auth-card-stage,
-  .liquid-button,
-  .liquid-glass {
-    transition: none;
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }
