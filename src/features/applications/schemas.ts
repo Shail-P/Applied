@@ -22,3 +22,13 @@ export const extractedApplicationSchema = z.object({
 });
 
 export type ExtractedApplication = z.infer<typeof extractedApplicationSchema>;
+
+export const applicationDraftSchema = extractedApplicationSchema.extend({
+  status: z.enum(["applied", "interview", "offer", "rejected"]),
+  jobDescription: z.string().max(MAX_JOB_DESCRIPTION_LENGTH),
+});
+
+export const applicationSchema = applicationDraftSchema.extend({
+  id: z.string(),
+  appliedAt: z.iso.datetime(),
+});

@@ -29,7 +29,38 @@ let user: ReturnType<typeof userEvent.setup>;
 beforeEach(() => {
   user = userEvent.setup();
   fetchMock.mockReset();
-  vi.stubGlobal("fetch", fetchMock);
+  let records: Record<string, unknown>[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, options?: RequestInit) => {
+      if (url === "/api/applications/extract") return fetchMock(url, options);
+      const method = options?.method || "GET";
+      if (method === "GET") return Response.json({ applications: records });
+      if (method === "POST") {
+        const application = {
+          ...JSON.parse(options?.body as string),
+          id: crypto.randomUUID(),
+          appliedAt: new Date().toISOString(),
+        };
+        records.unshift(application);
+        return Response.json({ application });
+      }
+      const id = url.split("/").pop();
+      if (method === "PATCH") {
+        const original = records.find((item) => item.id === id)!;
+        const application = {
+          ...original,
+          ...JSON.parse(options?.body as string),
+          jobDescription: original.jobDescription,
+          appliedAt: original.appliedAt,
+        };
+        records = records.map((item) => (item.id === id ? application : item));
+        return Response.json({ application });
+      }
+      records = records.filter((item) => item.id !== id);
+      return new Response(null, { status: 204 });
+    }),
+  );
 });
 
 afterEach(() => {
@@ -56,7 +87,7 @@ describe("ApplicationTracker", () => {
   it("reviews extracted fields, lets the user correct them, and adds a card", async () => {
     render(<ApplicationTracker />);
     expect(
-      screen.getByRole("heading", { name: "No applications yet" }),
+      await screen.findByRole("heading", { name: "No applications yet" }),
     ).toBeDefined();
 
     await reviewPosting();
@@ -296,7 +327,7 @@ describe("ApplicationTracker", () => {
     expect(screen.getByText("0 applications")).toBeDefined();
     expect(screen.getByText("Application deleted.")).toBeDefined();
     expect(
-      screen.getByRole("heading", { name: "No applications yet" }),
+      await screen.findByRole("heading", { name: "No applications yet" }),
     ).toBeDefined();
   });
 
@@ -395,4 +426,52 @@ describe("ApplicationTracker", () => {
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
+});
+
+it("retains a reviewed draft when saving fails and lets the user retry", async () => {
+  render(<ApplicationTracker />);
+  await reviewPosting();
+  const network = vi.mocked(fetch);
+  network.mockResolvedValueOnce(
+    Response.json(
+      { error: "Could not save your application. Please try again." },
+      { status: 503 },
+    ),
+  );
+  await user.click(screen.getByRole("button", { name: "Submit application" }));
+  expect((await screen.findByRole("alert")).textContent).toContain(
+    "Could not save",
+  );
+  expect((screen.getByLabelText(/Company/) as HTMLInputElement).value).toBe(
+    "Bree",
+  );
+  expect(screen.queryByRole("article")).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Submit application" }));
+  expect(await screen.findByRole("article")).toBeDefined();
+});
+
+it("shows a load error instead of an empty tracker and retries", async () => {
+  vi.mocked(fetch).mockResolvedValueOnce(
+    Response.json({ error: "Unavailable" }, { status: 503 }),
+  );
+  render(<ApplicationTracker />);
+  expect((await screen.findByRole("alert")).textContent).toContain(
+    "Could not load",
+  );
+  expect(
+    screen.queryByRole("heading", { name: "No applications yet" }),
+  ).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Retry" }));
+  expect(
+    await screen.findByRole("heading", { name: "No applications yet" }),
+  ).toBeDefined();
+});
+
+it("loads saved applications again after the tracker remounts", async () => {
+  const view = render(<ApplicationTracker />);
+  await addApplication();
+  view.unmount();
+  render(<ApplicationTracker />);
+  expect(await screen.findByRole("article")).toBeDefined();
+  expect(screen.getByText("Bree")).toBeDefined();
 });

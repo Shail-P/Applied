@@ -6,7 +6,8 @@ import { statusLabels, workplaceLabels, type ApplicationDraft } from "../types";
 type ApplicationFormProps = {
   initialValues: ApplicationDraft;
   isEditing: boolean;
-  onSave: (draft: ApplicationDraft) => void;
+  disabled?: boolean;
+  onSave: (draft: ApplicationDraft) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -15,6 +16,7 @@ export function ApplicationForm({
   isEditing,
   onSave,
   onCancel,
+  disabled,
 }: ApplicationFormProps) {
   const [draft, setDraft] = useState(initialValues);
   const [skillsText, setSkillsText] = useState(initialValues.skills.join(", "));
@@ -28,7 +30,7 @@ export function ApplicationForm({
     setError("");
   }
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!draft.company.trim() || !draft.title.trim()) {
@@ -37,16 +39,24 @@ export function ApplicationForm({
     }
 
     // Send only draft fields; saved IDs and dates are owned by the tracker.
-    onSave({
-      company: draft.company.trim(),
-      title: draft.title.trim(),
-      location: draft.location.trim() || "Not specified",
-      workplaceType: draft.workplaceType,
-      status: draft.status,
-      summary: draft.summary.trim(),
-      skills: parseSkills(skillsText),
-      jobDescription: draft.jobDescription,
-    });
+    try {
+      await onSave({
+        company: draft.company.trim(),
+        title: draft.title.trim(),
+        location: draft.location.trim() || "Not specified",
+        workplaceType: draft.workplaceType,
+        status: draft.status,
+        summary: draft.summary.trim(),
+        skills: parseSkills(skillsText),
+        jobDescription: draft.jobDescription,
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not save. Please try again.",
+      );
+    }
   }
 
   return (
@@ -60,7 +70,7 @@ export function ApplicationForm({
           : "Check the details before adding this application to your tracker."}
       </p>
 
-      <div className="space-y-4">
+      <fieldset disabled={disabled} className="space-y-4">
         <label className="field-label">
           Company <span className="text-zinc-500">(required)</span>
           <input
@@ -160,7 +170,7 @@ export function ApplicationForm({
             onChange={(event) => updateField("summary", event.target.value)}
           />
         </label>
-      </div>
+      </fieldset>
 
       {error && (
         <p role="alert" className="mt-4 text-sm text-red-700">
@@ -171,11 +181,16 @@ export function ApplicationForm({
         <button
           type="button"
           onClick={onCancel}
+          disabled={disabled}
           className="button button-quiet"
         >
           <ArrowLeft size={15} aria-hidden="true" /> Cancel
         </button>
-        <button type="submit" className="button button-primary">
+        <button
+          disabled={disabled}
+          type="submit"
+          className="button button-primary"
+        >
           <Check size={16} aria-hidden="true" />{" "}
           {isEditing ? "Save changes" : "Submit application"}
         </button>

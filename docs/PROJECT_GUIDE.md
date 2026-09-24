@@ -2,7 +2,7 @@
 
 ## A 30-second introduction
 
-“Applied is a job application tracker that turns a pasted job posting into structured details using Gemini. A user reviews and corrects those details before adding them to their tracker. It supports editing, deletion, search, and status filtering. I used Next.js and TypeScript, Clerk for authentication, and runtime validation around the AI response. The current version stores applications in React state; database persistence is the next step.”
+“Applied is a job application tracker that turns a pasted job posting into structured details using Gemini. A user reviews and corrects those details before adding them to their tracker. It supports editing, deletion, search, and status filtering. I used Next.js and TypeScript, Clerk for authentication, and runtime validation around the AI response. Applications are stored in MongoDB and associated with the signed-in Clerk user.”
 
 Be clear that adding a record tracks an application. Applied does not submit applications to employers.
 
@@ -15,7 +15,7 @@ Be clear that adding a record tracks an application. Applied does not submit app
 5. The route independently checks authentication and validates the request. A protected page alone would not protect a directly called API.
 6. The server service calls Gemini using a key from the server environment. It asks for a structured response and validates the result with Zod.
 7. The browser validates the response too, then opens `ApplicationForm` with those values.
-8. The user corrects any details and submits. `useApplications` gives the new record an ID and timestamp and adds it to local state.
+8. The user corrects any details and submits. `useApplications` sends the reviewed draft to the API. The server assigns an ID, timestamp, and Clerk user ID, saves it in MongoDB, and returns the saved record.
 9. React renders the new card. Search and filters operate on that same array.
 
 An AI response is a draft, never an automatically saved application.
@@ -66,15 +66,13 @@ The shared CSS contains recurring surface, field, and button styles. Component-s
 
 This is a deliberately small version of the product. Known limitations:
 
-- Refreshing clears application state; Clerk authentication does not make that state persistent.
+- Database access requires configured MongoDB credentials and Atlas network access.
 - Gemini can make extraction mistakes, has rate limits, and receives the submitted posting.
 - API requests require authentication, but the app does not yet have distributed per-user rate limiting.
-- There is no deployment, database, or cross-device sync included in this milestone.
+- Deployment is not included; persisted records are available across sessions using the same account and database.
 
-## Where MongoDB connects next
+## MongoDB persistence
 
-The storage hook is the frontend integration point. Replace its local operations with API calls and load records when the tracker opens.
+The storage hook loads records through authenticated API routes and updates its UI state only after successful writes. It shows loading and retry states, and failed saves retain the draft. The server-only database module reuses a MongoClient connection pool.
 
-On the server, add a database connection module and application routes for listing, creating, updating, and deleting records. Associate every record with the Clerk user ID obtained from the session. Scope reads, updates, and deletes by that ID; never trust a user ID supplied by the browser.
-
-Keep MongoDB credentials and queries on the server. Add server-side validation for saved records, loading/error UI, and cross-user access tests. The review form, card layout, and AI extraction service can retain their current responsibilities.
+Each record is associated with the Clerk user ID obtained from the session. Reads, updates, and deletes filter by that ID. Browser-supplied ownership fields are ignored. Zod validates saved data, and the API preserves original postings and timestamps during edits.

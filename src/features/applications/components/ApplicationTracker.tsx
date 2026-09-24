@@ -12,11 +12,20 @@ type Editor =
   | { mode: "edit"; application: Application };
 
 export function ApplicationTracker() {
-  const { applications, addApplication, updateApplication, deleteApplication } =
-    useApplications();
+  const {
+    applications,
+    loading,
+    loadError,
+    pending,
+    retry,
+    addApplication,
+    updateApplication,
+    deleteApplication,
+  } = useApplications();
   const [editor, setEditor] = useState<Editor | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [notice, setNotice] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   function closeEditor() {
     setEditor(null);
@@ -25,14 +34,14 @@ export function ApplicationTracker() {
     );
   }
 
-  function handleSave(draft: ApplicationDraft) {
+  async function handleSave(draft: ApplicationDraft) {
     if (!editor) return;
 
     if (editor.mode === "edit") {
-      updateApplication(editor.application.id, draft);
+      await updateApplication(editor.application.id, draft);
       setNotice("Application updated.");
     } else {
-      addApplication(draft);
+      await addApplication(draft);
       setNotice("Application added to your tracker.");
       setJobDescription("");
     }
@@ -47,9 +56,14 @@ export function ApplicationTracker() {
     setEditor({ mode: "edit", application });
   }
 
-  function handleDelete(applicationId: string) {
-    deleteApplication(applicationId);
-    setNotice("Application deleted.");
+  async function handleDelete(applicationId: string) {
+    setDeleteError("");
+    try {
+      await deleteApplication(applicationId);
+      setNotice("Application deleted.");
+    } catch {
+      setDeleteError("Could not delete your application. Please try again.");
+    }
   }
 
   return (
@@ -65,6 +79,7 @@ export function ApplicationTracker() {
               editor.mode === "edit" ? editor.application : editor.draft
             }
             isEditing={editor.mode === "edit"}
+            disabled={pending || loading || Boolean(loadError)}
             onSave={handleSave}
             onCancel={closeEditor}
           />
@@ -87,13 +102,25 @@ export function ApplicationTracker() {
         {notice}
       </p>
 
-      <ApplicationList
-        applications={applications}
-        editingId={editor?.mode === "edit" ? editor.application.id : null}
-        isEditing={editor !== null}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {deleteError && <p role="alert">{deleteError}</p>}
+      {loading ? (
+        <p role="status">Loading applications…</p>
+      ) : loadError ? (
+        <div role="alert">
+          {loadError}{" "}
+          <button className="button button-secondary" onClick={retry}>
+            Retry
+          </button>
+        </div>
+      ) : (
+        <ApplicationList
+          applications={applications}
+          editingId={editor?.mode === "edit" ? editor.application.id : null}
+          isEditing={editor !== null || pending}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
     </>
   );
 }
